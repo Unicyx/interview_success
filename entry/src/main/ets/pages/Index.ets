@@ -1,20 +1,31 @@
+import { statusBar } from '../commons/utils'
+
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World'
+  @StorageProp('topHeight') topHeight: number = 0
+  @StorageProp('bottomHeight') bottomHeight: number = 0
 
   build() {
     Column() {
-      Text(this.message)
-        .id('HelloWorld')
-        .fontSize(50)
-        .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
-        })
-
+      Text('top')
+      Row() {
+        Button('Light')
+          .onClick(() => {
+            statusBar.setLightBar()
+          })
+        Button('Dark')
+          .onClick(() => {
+            statusBar.setDarkBar()
+          })
+      }
+      Blank()
+      Text('bottom')
 
     }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('red')
+    .padding({ top: this.topHeight, bottom: this.bottomHeight })
   }
 }
