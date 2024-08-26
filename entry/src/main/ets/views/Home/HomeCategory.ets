@@ -1,3 +1,5 @@
+import { HcTag, QuestionItemComp } from '../../commons/components'
+import { QuestionListComp } from '../../commons/components/QuestionListComp'
 import { QuestionType } from '../../models'
 
 @Component
@@ -30,10 +32,11 @@ export struct HomeCategory {
   }
 
   build() {
-    Tabs({ index: this.activeIndex }) {
+    Tabs({ index: this.activeIndex, }) {
       ForEach(this.questionTypeList, (item: QuestionType, i) => {
         TabContent() {
           // TODO 试题列表
+          QuestionListComp({})
         }
         .tabBar(this.TabBarBuilder(item, i))
       })
