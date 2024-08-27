@@ -1,6 +1,6 @@
-import { HcTag, QuestionItemComp } from '../../commons/components'
 import { QuestionListComp } from '../../commons/components/QuestionListComp'
 import { QuestionType } from '../../models'
+import { http } from '../../commons/utils'
 
 @Component
 export struct HomeCategory {
@@ -30,13 +30,12 @@ export struct HomeCategory {
     }
     .padding({ left: 16, right: this.questionTypeList.length === i + 1 ? 16 : 0 })
   }
-
   build() {
     Tabs({ index: this.activeIndex, }) {
       ForEach(this.questionTypeList, (item: QuestionType, i) => {
         TabContent() {
           // TODO 试题列表
-          QuestionListComp({})
+          QuestionListComp({ typeId: item.id })
         }
         .tabBar(this.TabBarBuilder(item, i))
       })
@@ -48,6 +47,13 @@ export struct HomeCategory {
     .barHeight(44)
     .scrollable(false)
     .divider({ strokeWidth: 0.5, color: $r('app.color.common_gray_border') })
+  }
+  aboutToAppear(): void {
+    this.getQuestionTypeList()
+  }
+  async getQuestionTypeList () {
+    const res: QuestionType[] = await http.request<QuestionType[]>({ url: 'question/type' })
+    this.questionTypeList = res
   }
 }
 

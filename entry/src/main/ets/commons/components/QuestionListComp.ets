@@ -1,5 +1,7 @@
 import { QuestionItemComp } from './'
-import { QuestionItem } from '../../models'
+import { PageData, QuestionItem, QuestionListParams, SortType } from '../../models'
+import { http } from '../../commons/utils'
+import { promptAction } from '@kit.ArkUI'
 
 @Component
 export struct QuestionListComp {
@@ -10,6 +12,10 @@ export struct QuestionListComp {
   @State isFinished: boolean = false
   // 正在加载中...
   @State isLoading: boolean = false
+  // 试题ID
+  @Prop typeId: number
+  @Prop sort: SortType = SortType.Default
+  @State page: number = 1
   @Builder
   LoadMoreBuilder() {
     ListItem() {
@@ -39,34 +45,36 @@ export struct QuestionListComp {
     .height(80)
   }
 
-  onRefresh() {
-    setTimeout(() => {
-      this.list = []
-      for (let i = 0; i < 10; i++) {
-        this.list.push({} as QuestionItem)
-      }
-      this.isRefreshing = false
+  async onRefresh() {
+    this.page = 1
+    const res = await this.getQuestionList()
+    this.list = res.rows
+    this.isRefreshing = false
+    if (this.page >= res.pageTotal) {
+      this.isFinished = true
+    } else {
       this.isFinished = false
-    }, 1000)
+      this.page++
+    }
+    promptAction.showToast({ message: '更新成功' })
   }
   // 加载逻辑
-  onLoad() {
-    setTimeout(() => {
-      for (let i = 0; i < 10; i++) {
-        this.list.push({} as QuestionItem)
-      }
-      this.isLoading = false
-      if (this.list.length >= 40) {
-        this.isFinished = true
-      }
-    }, 1000)
+  async onLoad() {
+    const res = await this.getQuestionList()
+    this.list.push(...res.rows)
+    this.isLoading = false
+    if (this.page >= res.pageTotal) {
+      this.isFinished = true
+    } else {
+      this.page++
+    }
   }
   build() {
     Refresh({ refreshing: $$this.isRefreshing }) {
       List() {
         ForEach(this.list, (item: QuestionItem, index) => {
           ListItem() {
-            QuestionItemComp({ item })
+            QuestionItemComp({ item: item})
           }
         })
         this.LoadMoreBuilder()
@@ -92,6 +100,18 @@ export struct QuestionListComp {
     // Refresh 绑定事件
     .onRefreshing(() => {
       this.onRefresh()
+    })
+  }
+  getQuestionList(): Promise<PageData<QuestionItem>> {
+    return http.request<PageData<QuestionItem>>({
+      url: 'question/list',
+      params: {
+        type: this.typeId,
+        questionBankType: 10,
+        sort: this.sort,
+        page: this.page,
+        pageSize: 10
+      } as QuestionListParams
     })
   }
 }
