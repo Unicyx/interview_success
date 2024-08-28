@@ -14,8 +14,10 @@ export struct QuestionListComp {
   @State isLoading: boolean = false
   // 试题ID
   @Prop typeId: number
-  @Prop sort: SortType = SortType.Default
   @State page: number = 1
+  @Prop @Watch('onChangeSort') sort: SortType = SortType.Default
+  @Prop activeIndex: number
+  @Prop index: number
   @Builder
   LoadMoreBuilder() {
     ListItem() {
@@ -74,7 +76,7 @@ export struct QuestionListComp {
       List() {
         ForEach(this.list, (item: QuestionItem, index) => {
           ListItem() {
-            QuestionItemComp({ item: item})
+            QuestionItemComp({ item: item })
           }
         })
         this.LoadMoreBuilder()
@@ -112,6 +114,14 @@ export struct QuestionListComp {
         page: this.page,
         pageSize: 10
       } as QuestionListParams
+    })
+  }
+  onChangeSort() {
+    //等待ui更新同步到所有位置后，再进行刷新，确保安全和用户体验
+    setTimeout(() => {
+      if (this.activeIndex === this.index) {
+        this.isRefreshing = true
+      }
     })
   }
 }
