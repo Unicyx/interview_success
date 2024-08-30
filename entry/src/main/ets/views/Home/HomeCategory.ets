@@ -1,7 +1,9 @@
 import { QuestionListComp } from '../../commons/components/QuestionListComp'
 import { QuestionType, SortType } from '../../models'
 import { http } from '../../commons/utils'
-import { FilterButton } from '../../commons/components'
+import { FilterButton, HcSkeleton, HcSkeletonItem } from '../../commons/components'
+import { emitter } from '@kit.BasicServicesKit'
+import { LOGIN_EVENT } from '../../commons/constants'
 
 @Extend(Text)
 function textTitle() {
@@ -139,47 +141,87 @@ export struct HomeCategory {
     .padding({ left: 16, right: this.questionTypeList.length === i + 1 ? 16 : 0 })
   }
   build() {
-    Stack({ alignContent: Alignment.TopEnd }) {
-      Tabs({ index: this.activeIndex }) {
-        ForEach(this.questionTypeList, (item: QuestionType, i) => {
-          TabContent() {
-            QuestionListComp({ typeId: item.id, sort: this.sort, activeIndex: this.activeIndex, index: i})
-          }
-          .tabBar(this.TabBarBuilder(item, i))
+    if (this.loading) {
+      this.SkeletonBuilder()
+    } else {
+      Stack({ alignContent: Alignment.TopEnd }) {
+        Tabs({ index: this.activeIndex }) {
+          ForEach(this.questionTypeList, (item: QuestionType, i) => {
+            TabContent() {
+              QuestionListComp({ typeId: item.id, sort: this.sort, activeIndex: this.activeIndex, index: i})
+            }
+            .tabBar(this.TabBarBuilder(item, i))
+          })
+        }
+        .onTabBarClick((i) => {
+          this.activeIndex = i
+        })
+        .barMode(BarMode.Scrollable)
+        .barHeight(44)
+        .scrollable(false)
+        .divider({ strokeWidth: 0.5, color: $r('app.color.common_gray_border') })
+        Row() {
+          Image($r('app.media.ic_home_filter'))
+            .width(24)
+            .aspectRatio(1)
+        }
+        .width(56)
+        .height(44)
+        .justifyContent(FlexAlign.Center)
+        .linearGradient({ angle: 90, colors: [['#00FFFFFF', 0], ['#ffffffff', 0.285]] })
+        .bindSheet($$this.isShow, this.FilterSheetBuilder(), {
+          showClose: false,
+          height: 400
+        })
+        .onClick(() => {
+          this.isShow = true
+          this.filterDataIndex = this.activeIndex
         })
       }
-      .onTabBarClick((i) => {
-        this.activeIndex = i
-      })
-      .barMode(BarMode.Scrollable)
-      .barHeight(44)
-      .scrollable(false)
-      .divider({ strokeWidth: 0.5, color: $r('app.color.common_gray_border') })
-      Row() {
-        Image($r('app.media.ic_home_filter'))
-          .width(24)
-          .aspectRatio(1)
-      }
-      .width(56)
-      .height(44)
-      .justifyContent(FlexAlign.Center)
-      .linearGradient({ angle: 90, colors: [['#00FFFFFF', 0], ['#ffffffff', 0.285]] })
-      .bindSheet($$this.isShow, this.FilterSheetBuilder(), {
-        showClose: false,
-        height: 400
-      })
-      .onClick(() => {
-        this.isShow = true
-        this.filterDataIndex = this.activeIndex
-      })
     }
   }
+  @State loading: boolean = false
+
   aboutToAppear(): void {
     this.getQuestionTypeList()
+    // 触发 LOGIN_EVENT 更新数据
+    emitter.on(LOGIN_EVENT, () => {
+      this.getQuestionTypeList()
+    })
+
   }
   async getQuestionTypeList () {
+    this.loading = true
     const res: QuestionType[] = await http.request<QuestionType[]>({ url: 'question/type' })
     this.questionTypeList = res
+    this.loading = false
+  }
+  @Builder
+  SkeletonBuilder() {
+    HcSkeleton() {
+      Column() {
+        Row({ space: 16 }) {
+          HcSkeletonItem({ widthValue: 60 })
+          HcSkeletonItem({ widthValue: 100 })
+          HcSkeletonItem({ widthValue: 80 })
+          HcSkeletonItem({ widthValue: 40 })
+        }
+        .height(44)
+        .width('100%')
+
+        ForEach([1, 2, 3, 4, 5, 6], () => {
+          Column({ space: 10 }) {
+            HcSkeletonItem({ widthValue: '90%' })
+            HcSkeletonItem({ widthValue: '45%' })
+          }
+          .height(80)
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+          .justifyContent(FlexAlign.Center)
+        })
+      }
+      .padding({ left: 16, right: 16 })
+    }
   }
 }
 

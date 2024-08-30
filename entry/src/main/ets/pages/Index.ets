@@ -2,12 +2,15 @@ import { HomePage } from './HomePage'
 import { InterviewPage } from './InterviewPage'
 import { MinePage } from './MinePage'
 import { ProjectPage } from './ProjectPage'
+import { auth } from  '../commons/utils'
 
 interface TabItem {
   icon: Resource
   activeIcon: Resource
   name: string
 }
+auth.initUser()
+
 @Entry
 @Component
 struct Index {
@@ -49,7 +52,6 @@ struct Index {
         .fontColor(this.activeIndex === index ? $r('app.color.black') : $r('app.color.common_gray_01'))
     }
   }
-
   build() {
     Column() {
       Tabs({ index: this.activeIndex }) {
