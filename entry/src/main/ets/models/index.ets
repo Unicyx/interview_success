@@ -40,6 +40,7 @@ export interface QuestionListParams {
   pageSize?: number
 }
 
+
 export interface User {
   id: string
   username: string
@@ -50,4 +51,17 @@ export interface User {
   totalTime?: number
   // 打卡次数
   clockinNumbers?: number
+}
+export interface QuestionDetail extends QuestionItem {
+  /* 答案 */
+  answer: string
+  /* 是否收藏 */
+  collectFlag: 0 | 1
+  /* 是否点赞 */
+  likeFlag: 0 | 1
+  /* 所属模块 */
+  stage: string[]
+}
+export interface QuestionPageParams {
+  item: QuestionItem
 }
