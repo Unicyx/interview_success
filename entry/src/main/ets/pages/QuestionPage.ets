@@ -1,6 +1,6 @@
 import { HcLoadingDialog, HcNavBar, HcTag } from '../commons/components'
-import { QuestionDetail, QuestionPageParams } from '../models'
-import { router } from '@kit.ArkUI'
+import { QuestionDetail, QuestionItem, QuestionOptParams, QuestionPageParams } from '../models'
+import { promptAction, router } from '@kit.ArkUI'
 import { http } from '../commons/utils'
 import { webview } from '@kit.ArkWeb'
 
@@ -10,6 +10,8 @@ import { webview } from '@kit.ArkWeb'
 struct QuestionPage {
   @StorageProp('bottomHeight') bottomHeight: number = 0
   @State item: QuestionDetail = {} as QuestionDetail
+  @State list: QuestionDetail[] = []
+  @State questionIndex: number = 0
 
   controller = new webview.WebviewController()
 
@@ -17,8 +19,53 @@ struct QuestionPage {
     const params = router.getParams() as QuestionPageParams
     if (params) {
       this.item = params.item as QuestionDetail
+      this.list = params.list as QuestionDetail[]
+      this.questionIndex = this.list.findIndex(item => item.id === this.item.id)
       this.item = await this.getQuestionDetail(this.item.id)
+      this.list[this.questionIndex] = this.item
       this.controller.loadUrl($rawfile('question.html'))
+    }
+  }
+  async toggleQuestion(step: number) {
+    const index = this.questionIndex + step
+    if (index < 0 || index >= this.list.length) {
+      return promptAction.showToast({ message: '没有更多题了' })
+    }
+    this.questionIndex = index
+    const item= this.list[index]
+    // 加载试题，如果数组中已经是完整数据，直接使用，否则加载
+    if (item.answer) {
+      this.item = item
+    } else {
+      const fullItem = await this.getQuestionDetail(item.id)
+      this.list[index] = fullItem
+      this.item = fullItem
+    }
+    this.controller.runJavaScript(`writeHtml(\`${this.item.answer}\`)`)
+  }
+  async questionOpt(optType: 1 | 2, flag: 0 | 1) {
+    try {
+      const data: QuestionOptParams = {
+        id: this.item.id,
+        type: 0,
+        optType
+      }
+      // flag 是你要执行的操作 执行 | 取消
+      await http.request<null, QuestionOptParams>({
+        url: flag === 1 ? 'question/opt' : 'question/unOpt',
+        method: 'post',
+        data
+      })
+      if (optType === 1) {
+        this.item.likeFlag = flag
+        promptAction.showToast({ message: flag ? '点赞成功' : '取消点赞' })
+      }
+      if (optType === 2) {
+        this.item.collectFlag = flag
+        promptAction.showToast({ message: flag ? '收藏成功' : '取消收藏' })
+      }
+    } catch (e) {
+      promptAction.showToast({ message: '操作失败' })
     }
   }
   dialog = new CustomDialogController({
@@ -51,8 +98,10 @@ struct QuestionPage {
   @Builder
   MenuBuilder() {
     Menu() {
-      MenuItem({ content: '点赞' })
-      MenuItem({ content: '收藏' })
+      MenuItem({ content: this.item.likeFlag === 1 ? '取消点赞' : '点赞' })
+        .onClick(() => this.questionOpt(1, this.item.likeFlag === 1 ? 0 : 1))
+      MenuItem({ content: this.item.collectFlag === 1 ? '取消收藏' : '收藏' })
+        .onClick(() => this.questionOpt(2, this.item.collectFlag === 1 ? 0 : 1))
       MenuItem({ content: '点我反馈' })
       MenuItem({ content: '试题分享' })
     }
@@ -64,7 +113,7 @@ struct QuestionPage {
       HcNavBar({ title: '试题详情', showRightIcon: false })
       // 题目
       this.TitleBuilder('题目：')
-      Text('ArkUI的容器组件有哪些？')
+      Text(this.item.stem)
         .width('100%')
         .padding(16)
         .maxLines(2)
@@ -100,19 +149,26 @@ struct QuestionPage {
           Image($r('sys.media.ohos_ic_public_arrow_left'))
             .width(20)
             .aspectRatio(1)
-            .fillColor($r('app.color.common_gray_01'))
+            .fillColor(this.questionIndex <= 0 ? $r('app.color.common_gray_01') : $r('app.color.common_gray_03'))
           Text(' 上一题')
-            .fontColor($r('app.color.common_gray_01'))
+            .fontColor(this.questionIndex <= 0 ? $r('app.color.common_gray_01') : $r('app.color.common_gray_03'))
         }
+        .onClick(() => {
+          this.toggleQuestion(-1)
+        })
 
         Row() {
           Text('下一题 ')
-            .fontColor($r('app.color.common_gray_03'))
+            .fontColor(this.questionIndex >= this.list.length-1 ? $r('app.color.common_gray_01') : $r('app.color.common_gray_03'))
           Image($r('sys.media.ohos_ic_public_arrow_right'))
             .width(20)
             .aspectRatio(1)
-            .fillColor($r('app.color.common_gray_03'))
+            .fillColor(this.questionIndex >= this.list.length-1 ? $r('app.color.common_gray_01') : $r('app.color.common_gray_03'))
         }
+        .onClick(() => {
+          this.toggleQuestion(1)
+        })
+
       }
       .height(44)
       .width('100%')

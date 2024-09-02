@@ -81,7 +81,8 @@ export struct QuestionListComp {
                 auth.checkAuth({
                   url: 'pages/QuestionPage',
                   params: {
-                    item
+                    item,
+                    list: this.list
                   } as QuestionPageParams
                 })
               })
