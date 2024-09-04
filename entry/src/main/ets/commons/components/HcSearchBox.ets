@@ -1,3 +1,6 @@
+import { auth } from '../utils'
+import { router } from '@kit.ArkUI'
+
 @Component
 export struct HcSearchBox {
   @Prop boxWidth: Length = 100
@@ -23,5 +26,10 @@ export struct HcSearchBox {
     .borderRadius(this.boxHeight / 2)
     .justifyContent(FlexAlign.Center)
     .layoutWeight(this.layoutWeightValue)
+    .onClick(() => {
+      auth.checkAuth({
+          url: 'pages/SearchPage'
+        })
+      })
   }
 }

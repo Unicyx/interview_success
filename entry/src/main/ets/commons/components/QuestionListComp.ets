@@ -18,6 +18,7 @@ export struct QuestionListComp {
   @Prop @Watch('onChangeSort') sort: SortType = SortType.Default
   @Prop activeIndex: number
   @Prop index: number
+  @Prop keyword: string = ''
   @Builder
   LoadMoreBuilder() {
     ListItem() {
@@ -118,6 +119,7 @@ export struct QuestionListComp {
       url: 'question/list',
       params: {
         type: this.typeId,
+        keyword: this.keyword,
         questionBankType: 10,
         sort: this.sort,
         page: this.page,

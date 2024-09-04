@@ -32,15 +32,6 @@ export enum SortType {
   Commend = 30
 }
 
-export interface QuestionListParams {
-  type: number
-  questionBankType: 9 | 10
-  sort?: SortType
-  page?: number
-  pageSize?: number
-}
-
-
 export interface User {
   id: string
   username: string
@@ -72,4 +63,17 @@ export interface QuestionOptParams {
   type: 0 | 1
   /* 1 点赞  2 收藏 */
   optType: 1 | 2
+}
+export interface TimeItem {
+  questionId: string
+  startTime: number
+  endTime: number
+}
+export interface QuestionListParams {
+  type: number
+  questionBankType: 9 | 10
+  sort?: SortType
+  page?: number
+  pageSize?: number,
+  keyword?: string
 }

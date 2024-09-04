@@ -1,5 +1,9 @@
 import { HcClockIn, HcSearchBox } from '../commons/components'
+import { auth, http, tracking } from '../commons/utils'
 import { HomeCategory } from '../views/Home/HomeCategory'
+import { scanBarcode } from '@kit.ScanKit'
+import { promptAction, router } from '@kit.ArkUI'
+import { QuestionDetail } from '../models'
 
 @Component
 export struct HomePage {
@@ -15,13 +19,21 @@ export struct HomePage {
     .width('100%')
     .padding({ left: 16, right: 16 })
   }
+  aboutToAppear(): void {
+    tracking.report(true)
+  }
   build() {
     Column() {
       Row({ space: 16 }) {
         Image($r('app.media.ic_home_scan'))
           .width(24)
           .aspectRatio(1)
-        HcSearchBox({ layoutWeightValue: 1})
+          .onClick(() => {
+            auth.checkAuth(() => {
+              this.scanQuestionCode()
+            })
+          })
+        HcSearchBox({ layoutWeightValue: 1 })
         HcClockIn()
       }
       .padding({ left: 16, right: 16 })
@@ -54,5 +66,26 @@ export struct HomePage {
     .backgroundColor($r('app.color.common_gray_bg'))
     .backgroundImageSize(ImageSize.Contain)
 
+  }
+
+  async scanQuestionCode() {
+    if (canIUse('SystemCapability.Multimedia.Scan.ScanBarcode')) {
+      //调用上下文，可以确保为当前实例，而不是出现别的情况，比如切屏后的变化
+      const result = await scanBarcode.startScanForResult(getContext(this))
+      if (result.originalValue) {
+        try {
+          const item = await http.request<QuestionDetail>({ url: `question/${result.originalValue}` })
+          router.pushUrl({
+            url: 'pages/QuestionPage',
+            params: {
+              item,
+              list: [item]
+            }
+          })
+        } catch (e) {
+          promptAction.showToast({ message: '没有找到试题' })
+        }
+      }
+    }
   }
 }

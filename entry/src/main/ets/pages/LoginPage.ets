@@ -1,6 +1,6 @@
 import { HcNavBar } from '../commons/components'
 import { promptAction, router } from '@kit.ArkUI'
-import { auth, http } from '../commons/utils'
+import { auth, http, tracking } from '../commons/utils'
 import { User } from '../models'
 import { emitter } from '@kit.BasicServicesKit'
 import { LOGIN_EVENT } from '../commons/constants'
@@ -144,6 +144,7 @@ struct LoginPage {
       this.loading = false
       auth.setUser(user)
       emitter.emit(LOGIN_EVENT)
+      tracking.report(true)
       // 有 return_url 就回跳
       const params = router.getParams() as Record<string, string>
       if (params?.return_url) {

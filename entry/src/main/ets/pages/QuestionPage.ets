@@ -1,8 +1,9 @@
 import { HcLoadingDialog, HcNavBar, HcTag } from '../commons/components'
 import { QuestionDetail, QuestionItem, QuestionOptParams, QuestionPageParams } from '../models'
 import { promptAction, router } from '@kit.ArkUI'
-import { http } from '../commons/utils'
+import { http, tracking } from '../commons/utils'
 import { webview } from '@kit.ArkWeb'
+import { QuestionShareDialog } from '../views/Question/QuestionShareDialog'
 
 
 @Entry
@@ -14,15 +15,26 @@ struct QuestionPage {
   @State questionIndex: number = 0
 
   controller = new webview.WebviewController()
+  startTime: number = Date.now()
 
+  onPageShow(): void {
+    this.startTime = Date.now()
+  }
+
+  onPageHide(): void {
+    tracking.record(this.startTime, Date.now(), this.item.id)
+    tracking.report()
+  }
   async aboutToAppear() {
     const params = router.getParams() as QuestionPageParams
     if (params) {
       this.item = params.item as QuestionDetail
       this.list = params.list as QuestionDetail[]
-      this.questionIndex = this.list.findIndex(item => item.id === this.item.id)
-      this.item = await this.getQuestionDetail(this.item.id)
-      this.list[this.questionIndex] = this.item
+      if (!this.item.answer) {
+        this.questionIndex = this.list.findIndex(item => item.id === this.item.id)
+        this.item = await this.getQuestionDetail(this.item.id)
+        this.list[this.questionIndex] = this.item
+      }
       this.controller.loadUrl($rawfile('question.html'))
     }
   }
@@ -31,6 +43,9 @@ struct QuestionPage {
     if (index < 0 || index >= this.list.length) {
       return promptAction.showToast({ message: '没有更多题了' })
     }
+    tracking.record(this.startTime, Date.now(), this.item.id)
+    this.startTime = Date.now()
+
     this.questionIndex = index
     const item= this.list[index]
     // 加载试题，如果数组中已经是完整数据，直接使用，否则加载
@@ -73,6 +88,11 @@ struct QuestionPage {
     customStyle: true,
     alignment: DialogAlignment.Center
   })
+  shareDialog = new CustomDialogController({
+    builder: QuestionShareDialog({ item: this.item }),
+    customStyle: true,
+    alignment: DialogAlignment.Center
+  })
   async getQuestionDetail (id: string) {
     this.dialog.open()
     const res = await http.request<QuestionDetail>({ url: `question/${id}` })
@@ -104,6 +124,7 @@ struct QuestionPage {
         .onClick(() => this.questionOpt(2, this.item.collectFlag === 1 ? 0 : 1))
       MenuItem({ content: '点我反馈' })
       MenuItem({ content: '试题分享' })
+        .onClick(() => this.shareDialog.open())
     }
     .width(108)
   }
