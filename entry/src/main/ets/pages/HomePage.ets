@@ -1,13 +1,14 @@
 import { HcClockIn, HcSearchBox } from '../commons/components'
-import { auth, http, tracking } from '../commons/utils'
+import { auth, http, requestClockIn, tracking, UserStoreKey } from '../commons/utils'
 import { HomeCategory } from '../views/Home/HomeCategory'
 import { scanBarcode } from '@kit.ScanKit'
 import { promptAction, router } from '@kit.ArkUI'
-import { QuestionDetail } from '../models'
+import { QuestionDetail, User } from '../models'
 
 @Component
 export struct HomePage {
   @StorageProp('topHeight') topHeight: number = 0
+  @StorageProp(UserStoreKey) user: User = {} as User
   @Builder
   SwiperItemBuilder(src: ResourceStr) {
     Row() {
@@ -34,7 +35,10 @@ export struct HomePage {
             })
           })
         HcSearchBox({ layoutWeightValue: 1 })
-        HcClockIn()
+        HcClockIn({ clockInCount: this.user.clockinNumbers })
+          .onClick(() => {
+            requestClockIn()
+          })
       }
       .padding({ left: 16, right: 16 })
       .height(64)

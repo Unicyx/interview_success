@@ -1,6 +1,6 @@
 import { HcClockIn } from '../commons/components'
 import { router } from '@kit.ArkUI'
-import { formatTime, statusBar, UserStoreKey } from '../commons/utils'
+import { auth, formatTime, requestClockIn, statusBar, UserStoreKey } from '../commons/utils'
 import { User } from '../models'
 
 interface Nav {
@@ -122,6 +122,9 @@ export struct MinePage {
         }
 
         HcClockIn({ clockInCount: this.user.clockinNumbers })
+          .onClick(() => {
+            requestClockIn()
+          })
       }
       .width('100%')
       .height(100)
@@ -148,7 +151,9 @@ export struct MinePage {
           name: '累计学时',
           other: formatTime(this.user.totalTime),
           onClick: () => {
-            // TODO
+            auth.checkAuth({
+              url: 'pages/StudyTimePage'
+            })
           }
         })
       }
@@ -165,7 +170,9 @@ export struct MinePage {
       Column() {
         this.toolsBuilder({
           icon: $r('app.media.ic_mine_notes'), name: '开发常用词', onClick: () => {
-            // TODO
+            auth.checkAuth({
+              url: 'pages/WordPage'
+            })
           }
         })
         this.toolsBuilder({ icon: $r('app.media.ic_mine_ai'), name: '面通AI' })

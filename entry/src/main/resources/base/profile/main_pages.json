@@ -4,6 +4,9 @@
     "pages/LoginPage",
     "pages/WebPage",
     "pages/QuestionPage",
-    "pages/SearchPage"
+    "pages/SearchPage",
+    "pages/ClockInPage",
+    "pages/StudyTimePage",
+    "pages/WordPage"
   ]
 }
