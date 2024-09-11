@@ -29,6 +29,8 @@ export * from './Http'
 export * from './Auth'
 export * from './Tracking'
 export * from './History'
+export * from './Permission'
+export * from './AudioDB'
 
 
 const day = 60 * 60 * 24

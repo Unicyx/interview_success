@@ -1,6 +1,13 @@
+import { auth } from '../commons/utils/Auth'
+
 @Component
 export struct InterviewPage {
   build() {
-    Text('Interview')
+    Button('Interview')
+      .onClick(() => {
+        auth.checkAuth({
+          url: 'pages/AudioPage'
+        })
+      })
   }
 }
