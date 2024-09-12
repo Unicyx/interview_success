@@ -2,7 +2,7 @@ import { HomePage } from './HomePage'
 import { InterviewPage } from './InterviewPage'
 import { MinePage } from './MinePage'
 import { ProjectPage } from './ProjectPage'
-import { auth } from  '../commons/utils'
+import { auth, theme } from  '../commons/utils'
 
 interface TabItem {
   icon: Resource
@@ -10,6 +10,7 @@ interface TabItem {
   name: string
 }
 auth.initUser()
+theme.initTheme()
 
 @Entry
 @Component

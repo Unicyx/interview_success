@@ -31,6 +31,7 @@ export * from './Tracking'
 export * from './History'
 export * from './Permission'
 export * from './AudioDB'
+export * from './Theme'
 
 
 const day = 60 * 60 * 24

@@ -188,7 +188,6 @@ export struct HomeCategory {
     emitter.on(LOGIN_EVENT, () => {
       this.getQuestionTypeList()
     })
-
   }
   async getQuestionTypeList () {
     this.loading = true
